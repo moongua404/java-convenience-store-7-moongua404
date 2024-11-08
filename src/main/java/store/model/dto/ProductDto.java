@@ -1,5 +1,7 @@
 package store.model.dto;
 
+import store.constants.MessageConstants;
+
 public class ProductDto {
     private String name;
     private int price;
@@ -43,5 +45,18 @@ public class ProductDto {
 
     public String getPromotion() {
         return promotion;
+    }
+
+    @Override
+    public String toString() {
+        String promotionMessage = promotion;
+        if (promotion == null) promotionMessage = "";
+        return String.format(
+                MessageConstants.ITEM_MESSAGE.getMessage(),
+                this.name,
+                this.price,
+                this.amount,
+                promotionMessage
+        );
     }
 }

@@ -12,12 +12,14 @@ import store.model.dto.ProductDto;
 public class StoreService {
     String NEWLINE_DELIMITER = "\n";
     String COMMA_DELIMITER = ",";
+    String NULL_DELIMITER = "null";
 
     public List<ProductDto> loadItem() throws Exception {
         Path path = Paths.get(FilePathConstants.ITEM_FILE_PATH.getPath());
         String content = getFileData(path);
 
         List<List<String>> parsedContent = separateCsvData(content, NEWLINE_DELIMITER).stream()
+                .skip(1)
                 .map((line)->separateCsvData(line, COMMA_DELIMITER))
                 .toList();
 
@@ -44,8 +46,11 @@ public class StoreService {
             int price = Integer.parseInt(line.get(1));
             int amount = Integer.parseInt(line.get(2));
             String promotion = line.get(3);
+            if (promotion.equals(NULL_DELIMITER))
+                promotion = null;
             parsedData.add(new ProductDto(name, price, amount, promotion));
         }
+        parsedData.forEach((data)->System.out.println(data.toString()));
         return parsedData;
     }
 }
