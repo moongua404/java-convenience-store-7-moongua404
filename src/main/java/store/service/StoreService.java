@@ -1,4 +1,4 @@
-package store;
+package store.service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,10 +7,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import store.constants.ErrorConstants;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import store.constants.ExceptionConstants;
 import store.constants.FilePathConstants;
 import store.model.dto.ProductDto;
 import store.model.dto.PromotionDto;
+import store.model.dto.PurchaseDto;
 
 public class StoreService {
     String NEWLINE_DELIMITER = "\n";
@@ -21,9 +24,9 @@ public class StoreService {
         Path path = Paths.get(FilePathConstants.ITEM_FILE_PATH.getPath());
         String content = getFileData(path);
 
-        List<List<String>> parsedContent = separateCsvData(content, NEWLINE_DELIMITER).stream()
+        List<List<String>> parsedContent = separateData(content, NEWLINE_DELIMITER).stream()
                 .skip(1)
-                .map((line) -> separateCsvData(line, COMMA_DELIMITER))
+                .map((line) -> separateData(line, COMMA_DELIMITER))
                 .toList();
 
         return ParseToProduct(parsedContent);
@@ -33,23 +36,48 @@ public class StoreService {
         Path path = Paths.get(FilePathConstants.PROMOTION_FILE_PATH.getPath());
         String content = getFileData(path);
 
-        List<List<String>> parsedContent = separateCsvData(content, NEWLINE_DELIMITER).stream()
+        List<List<String>> parsedContent = separateData(content, NEWLINE_DELIMITER).stream()
                 .skip(1)
-                .map((line) -> separateCsvData(line, COMMA_DELIMITER))
+                .map((line) -> separateData(line, COMMA_DELIMITER))
                 .toList();
 
         return ParseToPromotion(parsedContent);
     }
 
-    private String getFileData(Path path) throws Exception {
+    public List<PurchaseDto> parsePurchaseDto(String response) throws Exception {
+        List<String> items = separateData(response, COMMA_DELIMITER);
+        List<PurchaseDto> parsedData = new ArrayList<>();
+        for (String item : items) {
+            PurchaseDto productPurchaseDto = parseProductPurchaseDto(item);
+            parsedData.add(productPurchaseDto);
+        }
+        return parsedData;
+    }
+
+    private PurchaseDto parseProductPurchaseDto(String itemInfo) throws Exception {
+        Pattern pattern = Pattern.compile("^\\[([\\\\w가-힣]+)-(\\d+)\\]");
+        Matcher matcher = pattern.matcher(itemInfo);
         try {
-            return Files.readString(path);
-        } catch (Exception e) {
-            throw ErrorConstants.INVALID_FILE_IO.getException();
+            if (matcher.matches()) {
+                String name = matcher.group(1);
+                int amount = parseInt(matcher.group(2));
+                return new PurchaseDto(name, amount);
+            }
+            throw new Exception();
+        } catch (Exception exception) {
+            throw ExceptionConstants.INVALID_INPUT.getException();
         }
     }
 
-    private List<String> separateCsvData(String content, String delimiter) {
+    private String getFileData(Path path) throws Exception {
+        try {
+            return Files.readString(path);
+        } catch (Exception exception) {
+            throw ExceptionConstants.INVALID_FILE_IO.getException();
+        }
+    }
+
+    private List<String> separateData(String content, String delimiter) {
         return List.of(content.split(delimiter));
     }
 
@@ -85,7 +113,7 @@ public class StoreService {
         try {
             return Integer.parseInt(token);
         } catch (Exception exception) {
-            throw ErrorConstants.INVALID_NUMBER_FORMAT.getException();
+            throw ExceptionConstants.INVALID_NUMBER_FORMAT.getException();
         }
     }
 
@@ -93,7 +121,7 @@ public class StoreService {
         try {
             return LocalDate.parse(token).atStartOfDay();
         } catch (Exception exception) {
-            throw ErrorConstants.INVALID_DATE_FORMAT.getException();
+            throw ExceptionConstants.INVALID_DATE_FORMAT.getException();
         }
     }
 }

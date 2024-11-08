@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import store.model.dto.ProductDto;
 import store.model.dto.PromotionDto;
+import store.service.StoreService;
 
 public class StoreServiceTest {
     private StoreService storeService;
