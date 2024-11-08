@@ -2,7 +2,7 @@ package store.constants;
 
 public enum FilePathConstants {
     ITEM_FILE_PATH("src/main/resources/products.md"),
-    EVENT_FILE_PATH("src/main/resources/promotions.md");
+    PROMOTION_FILE_PATH("src/main/resources/promotions.md");
 
     final String path;
 
