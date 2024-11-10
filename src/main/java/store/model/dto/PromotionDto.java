@@ -2,6 +2,7 @@ package store.model.dto;
 
 import java.time.LocalDateTime;
 import store.constants.ExceptionConstants;
+import store.constants.MessageConstants;
 
 //name,buy,get,start_date,end_date
 public class PromotionDto {
@@ -30,7 +31,13 @@ public class PromotionDto {
 
     @Override
     public String toString() {
-        return "이름: " + name + ", 구매: " + buy + ", 증정: " + get + ", 행사 시작: " + startDate + ", 행사 종료: " + endDate;
+        return String.format(
+                MessageConstants.PROMOTE_MESSAGE.getMessage(),
+                name,
+                buy,
+                get,
+                startDate.toString(),
+                endDate.toString());
     }
 
     public String getName() {

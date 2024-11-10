@@ -1,6 +1,5 @@
 package store.model;
 
-import store.constants.MessageConstants;
 import store.model.dto.ProductDto;
 
 public class Product {
@@ -37,20 +36,5 @@ public class Product {
 
     public String getPromotion() {
         return promotion;
-    }
-
-    @Override
-    public String toString() {
-        String promotionMessage = promotion;
-        if (promotion == null) {
-            promotionMessage = "";
-        }
-        return String.format(
-                MessageConstants.ITEM_MESSAGE.getMessage(),
-                this.name,
-                this.price,
-                this.amount,
-                promotionMessage
-        );
     }
 }

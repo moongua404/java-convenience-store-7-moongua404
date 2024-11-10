@@ -21,6 +21,7 @@ public class StoreServiceTest {
     void ItemLoadTest() {
         assertSimpleTest(() -> {
             List<ProductDto> result = storeService.loadItem();
+            result.forEach((item) -> System.out.println(item.toString()));
         });
     }
 

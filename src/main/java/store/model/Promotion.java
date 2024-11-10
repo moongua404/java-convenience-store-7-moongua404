@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import store.model.dto.PromotionDto;
 
 public class Promotion {
-    private String name;
-    private int buy;
-    private int get;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private final String name;
+    private final int buy;
+    private final int get;
+    private final LocalDateTime startDate;
+    private final LocalDateTime endDate;
 
     public Promotion(PromotionDto promotionDto) {
         this.name = promotionDto.getName();
@@ -24,5 +24,25 @@ public class Promotion {
         this.get = get;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getGet() {
+        return get;
+    }
+
+    public int getBuy() {
+        return buy;
+    }
+
+    public int getBundle() {
+        return get + buy;
+    }
+
+    public boolean isValidOn(LocalDateTime time) {
+        return !time.isBefore(startDate) && !time.isAfter(endDate);
     }
 }

@@ -28,7 +28,6 @@ public class StoreService {
                 .skip(1)
                 .map((line) -> separateData(line, COMMA_DELIMITER))
                 .toList();
-
         return ParseToProduct(parsedContent);
     }
 
@@ -40,7 +39,6 @@ public class StoreService {
                 .skip(1)
                 .map((line) -> separateData(line, COMMA_DELIMITER))
                 .toList();
-
         return ParseToPromotion(parsedContent);
     }
 
@@ -103,7 +101,7 @@ public class StoreService {
             int buy = parseInt(line.get(1));
             int get = parseInt(line.get(2));
             LocalDateTime startTime = parseDate(line.get(3));
-            LocalDateTime endTime = parseDate(line.get(4));
+            LocalDateTime endTime = parseDate(line.get(4)).plusDays(1);
             parsedData.add(new PromotionDto(name, buy, get, startTime, endTime));
         }
         return parsedData;

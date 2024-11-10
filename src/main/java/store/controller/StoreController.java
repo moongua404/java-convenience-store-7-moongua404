@@ -3,8 +3,10 @@ package store.controller;
 import java.util.List;
 import store.constants.MessageConstants;
 import store.model.Product;
+import store.model.Promotion;
 import store.model.Purchase;
 import store.model.Store;
+import store.model.dto.ProductModifyDto;
 import store.model.dto.PurchaseDto;
 import store.service.StoreService;
 import store.view.InputView;
@@ -29,37 +31,55 @@ public class StoreController {
 
     public void run() throws Exception {
         setup();
+        printGuide();
         while (true) {
             purchase();
         }
     }
 
     private void setup() throws Exception {
-        List<Product> products = storeService.loadItem()
-                .stream()
-                .map((dto) -> new Product(dto))
-                .toList();
-        store.receiveRemain(products);
+        store.receiveRemain(storeService.loadItem().stream()
+                .map(Product::new)
+                .toList()
+        );
+        store.receivePromotion(storeService.loadPromotion().stream()
+                .map(Promotion::new)
+                .toList()
+        );
+    }
 
+    private void printGuide() {
         outputView.printGuide(MessageConstants.START_GUIDE_MESSAGE);
         outputView.newLine();
-        products.forEach((product) -> outputView.printProducts(product));
+        store.getRemains().forEach((product) -> outputView.printProducts(product));
         outputView.newLine();
     }
 
     private void purchase() throws Exception {
         while (true) {
             try {
-                String response = inputView.readItem();
-                List<PurchaseDto> parsedPurchase = storeService.parsePurchaseDto(response);
-                List<Purchase> purchased = parsedPurchase.stream().map((dto) -> new Purchase(dto)).toList();
-                for (Purchase item : purchased) {
-                    store.validatePurchase(item);
-                }
+                List<Purchase> purchased = getPurchaseInput();
+                store.validatePurchase(purchased);
+                adjustPurchase(purchased);
+
+                //제로부터 시작하는...
                 break;
             } catch (Exception exception) {
                 outputView.printMessage(exception.getMessage());
             }
         }
+    }
+
+    private List<Purchase> getPurchaseInput() throws Exception {
+        String response = inputView.readItem();
+        List<PurchaseDto> parsedPurchase = storeService.parsePurchaseDto(response);
+        return parsedPurchase.stream().map((dto) -> new Purchase(dto)).toList();
+    }
+
+    private void adjustPurchase(List<Purchase> purchases) {
+        List<ProductModifyDto> requests = store.getAdjustRequests(purchases);
+        requests.forEach((request) -> {
+
+        });
     }
 }
