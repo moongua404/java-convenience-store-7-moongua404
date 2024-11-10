@@ -59,6 +59,15 @@ public class Product {
         this.amount += amount;
     }
 
+    public void subAmount(int amount) {
+        int rest = this.promotionAmount % this.getPromotion().getBundle() * this.getPromotion().getBundle();
+        if (rest != 0) {
+            this.promotionAmount -= rest;
+            amount -= rest;
+        }
+        this.amount -= amount;
+    }
+
     public Promotion getPromotion() {
         return promotion;
     }

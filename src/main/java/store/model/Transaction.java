@@ -22,4 +22,13 @@ public class Transaction {
     public TransactionType getType() {
         return type;
     }
+
+    public void commit() {
+        if (type == TransactionType.ADD) {
+            target.addAmount(amount, true);
+        }
+        if (type == TransactionType.SUB) {
+            target.subAmount(amount);
+        }
+    }
 }

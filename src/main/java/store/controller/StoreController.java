@@ -18,8 +18,7 @@ public class StoreController {
     InputView inputView;
     OutputView outputView;
     StoreService storeService;
-
-    Store store = new Store();
+    Store store;
 
     public StoreController(
             InputView inputView,
@@ -29,13 +28,15 @@ public class StoreController {
         this.inputView = inputView;
         this.outputView = outputView;
         this.storeService = storeService;
+        store = new Store();
     }
 
     public void run() throws Exception {
         setup();
         printGuide();
         while (true) {
-            purchase();
+            List<Purchase> purchased = purchase();
+            adjustPurchase(purchased);
         }
     }
 
@@ -57,15 +58,10 @@ public class StoreController {
         outputView.newLine();
     }
 
-    private void purchase() throws Exception {
+    private List<Purchase> purchase() throws Exception {
         while (true) {
             try {
-                List<Purchase> purchased = getPurchaseInput();
-                store.validatePurchase(purchased);
-                adjustPurchase(purchased);
-
-                //제로부터 시작하는...
-                break;
+                return getPurchaseInput();
             } catch (Exception exception) {
                 outputView.printMessage(exception.getMessage());
             }
@@ -75,13 +71,32 @@ public class StoreController {
     private List<Purchase> getPurchaseInput() throws Exception {
         String response = inputView.readItem();
         List<PurchaseDto> parsedPurchase = storeService.parsePurchaseDto(response);
-        return parsedPurchase.stream().map((dto) -> new Purchase(dto)).toList();
+        List<Purchase> purchased = parsedPurchase.stream().map((dto) -> new Purchase(dto)).toList();
+        store.validatePurchase(purchased);
+        return purchased;
     }
 
-    private void adjustPurchase(List<Purchase> purchases) {
+    private void adjustPurchase(List<Purchase> purchases) throws Exception {
         List<Transaction> requests = store.makeTransaction(purchases);
-        requests.forEach((request) -> {
+        for (Transaction request : requests) {
+            dealTransaction(request);
+        }
+    }
 
-        });
+    private void dealTransaction(Transaction request) throws Exception {
+        boolean willCommit = getRequestResponse(request.getType().getMessageConstants());
+        if (willCommit) {
+            request.commit();
+        }
+    }
+
+    private boolean getRequestResponse(MessageConstants message) throws Exception {
+        while (true) {
+            try {
+                return inputView.readYorN(message);
+            } catch (Exception exception) {
+                outputView.printMessage(exception.getMessage());
+            }
+        }
     }
 }
