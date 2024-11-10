@@ -20,7 +20,7 @@ public class OutputView {
         String amount = replaceOnCondition(
                 isAmountNull, String.valueOf(product.getAmount()) + AMOUNT_UNIT, EMPTY_AMOUNT);
         boolean isPromotionNull = (product.getPromotion() == null);
-        String promotion = replaceOnCondition(isPromotionNull, product.getPromotion(), EMPTY_MARK);
+        String promotion = replaceOnCondition(isPromotionNull, product.getPromotion().getName(), EMPTY_MARK);
 
         System.out.println(String.format(
                 MessageConstants.ITEM_MESSAGE.getMessage(),

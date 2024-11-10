@@ -1,18 +1,16 @@
 package store.model;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import store.Utils;
 import store.constants.ExceptionConstants;
-import store.model.dto.ProductModifyDto;
-import store.model.dto.ProductModifyDto.ModifyingType;
 
 public class Store {
     private final Utils utils;
 
-    private final List<Product> remain = new ArrayList<Product>();
-    private final List<Promotion> promotions = new ArrayList<Promotion>();
+    private final Map<String, Product> remain = new HashMap<>();
 
     private final int ZERO = 0;
 
@@ -21,15 +19,18 @@ public class Store {
     }
 
     public void receiveRemain(List<Product> remain) {
-        this.remain.addAll(remain);
-    }
-
-    public void receivePromotion(List<Promotion> promotions) {
-        this.promotions.addAll(promotions);
+        for (Product item : remain) {
+            if (this.remain.containsKey(item.getName())) {
+                this.remain.get(item.getName())
+                        .addAmount(item.getAmount(), item.getPromotion() == null);
+            } else {
+                this.remain.put(item.getName(), item);
+            }
+        }
     }
 
     public List<Product> getRemains() {
-        return remain;
+        return remain.values().stream().toList();
     }
 
     public void validatePurchase(List<Purchase> purchases) throws Exception {
@@ -44,64 +45,40 @@ public class Store {
     }
 
     public void validatePurchase(Purchase purchase) throws Exception {
-        List<Product> targets = findItem(purchase.getName());
-        utils.validateEmpty(targets, ExceptionConstants.UNAVAILABLE_PRODUCT.getException());
+        Product target = remain.get(purchase.getName());
+        utils.validateNull(target, ExceptionConstants.UNAVAILABLE_PRODUCT.getException());
         utils.validatePositiveNumber(purchase.getAmount(), ExceptionConstants.INVALID_INPUT.getException());
 
-        long remainCount = targets.stream()
-                .map(Product::getAmount)
-                .reduce(0, Integer::sum);
-        if (remainCount < purchase.getAmount()) {
+        if (target.getTotalAmount() < purchase.getAmount()) {
             throw ExceptionConstants.EXCEEDED_AMOUNT.getException();
         }
     }
 
-    public List<ProductModifyDto> getAdjustRequests(List<Purchase> purchases) {
+    // 일단 여기까지 검수함
+
+    public List<Transaction> makeTransaction(List<Purchase> purchases) {
         return purchases.stream()
-                .map(this::getAdjustRequests)
+                .map(this::makeTransaction)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    public ProductModifyDto getAdjustRequests(Purchase purchase) {
-        System.out.println(purchase);
-        Product remain = findPromotionItem(purchase.getName());
-        if (remain == null) {
+    public Transaction makeTransaction(Purchase purchased) {
+        Product target = remain.get(purchased.getName());
+        if (target == null) {
             return null;
         }
-        Promotion promotion = findPromotion(remain.getPromotion());
-        if (promotion != null && promotion.isValidOn(utils.getToday())) {
-            int unit = promotion.getBundle();
-            int available = (remain.getAmount() / unit) * unit;
-            if (purchase.getAmount() > available) {
-                return new ProductModifyDto(purchase.getName(), purchase.getAmount() - available, ModifyingType.SUB);
+        if (target.getPromotion() != null && target.getPromotion().isValidOn(utils.getToday())) {
+            int bundle = target.getPromotion().getBundle();
+            int promotionAvailable = (target.getPromotionAmount() / bundle) * bundle;
+            if (purchased.getAmount() > promotionAvailable) {
+                return new Transaction(target, purchased.getAmount() - promotionAvailable, TransactionType.SUB);
             }
-            if (available >= purchase.getAmount() + promotion.getGet()
-                    && purchase.getAmount() % unit == promotion.getBuy()) {
-                return new ProductModifyDto(purchase.getName(), promotion.getGet(), ModifyingType.ADD);
+            if (promotionAvailable >= purchased.getAmount() + target.getPromotion().getGet()
+                    && purchased.getAmount() % bundle == target.getPromotion().getBuy()) {
+                return new Transaction(target, target.getPromotion().getGet(), TransactionType.ADD);
             }
         }
         return null;
-    }
-
-    private List<Product> findItem(String name) {
-        return this.remain.stream()
-                .filter((item) -> Objects.equals(item.getName(), name))
-                .toList();
-    }
-
-    private Product findPromotionItem(String name) {
-        return this.remain.stream()
-                .filter((item) -> Objects.equals(item.getName(), name))
-                .filter((item) -> item.getPromotion() != null)
-                .findFirst()
-                .orElse(null);
-    }
-
-    private Promotion findPromotion(String name) {
-        return promotions.stream()
-                .filter((promotion -> Objects.equals(promotion.getName(), name)))
-                .findFirst()
-                .orElse(null);
     }
 }

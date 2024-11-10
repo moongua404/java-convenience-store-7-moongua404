@@ -9,8 +9,8 @@ import java.util.function.Function;
 import store.constants.ExceptionConstants;
 
 public class Utils {
-    public <T> void validateEmpty(List<T> items, Exception exception) throws Exception {
-        if (items.isEmpty()) {
+    public <T> void validateNull(T item, Exception exception) throws Exception {
+        if (item == null) {
             throw exception;
         }
     }

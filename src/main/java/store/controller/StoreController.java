@@ -1,12 +1,14 @@
 package store.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import store.constants.MessageConstants;
 import store.model.Product;
 import store.model.Promotion;
 import store.model.Purchase;
 import store.model.Store;
-import store.model.dto.ProductModifyDto;
+import store.model.Transaction;
 import store.model.dto.PurchaseDto;
 import store.service.StoreService;
 import store.view.InputView;
@@ -38,12 +40,12 @@ public class StoreController {
     }
 
     private void setup() throws Exception {
+        Map<String, Promotion> promotions = new HashMap<>();
+        storeService.loadPromotion().forEach((dto) -> {
+            promotions.put(dto.getName(), new Promotion(dto));
+        });
         store.receiveRemain(storeService.loadItem().stream()
-                .map(Product::new)
-                .toList()
-        );
-        store.receivePromotion(storeService.loadPromotion().stream()
-                .map(Promotion::new)
+                .map((dto) -> new Product(dto, promotions.get(dto.getPromotion())))
                 .toList()
         );
     }
@@ -77,7 +79,7 @@ public class StoreController {
     }
 
     private void adjustPurchase(List<Purchase> purchases) {
-        List<ProductModifyDto> requests = store.getAdjustRequests(purchases);
+        List<Transaction> requests = store.makeTransaction(purchases);
         requests.forEach((request) -> {
 
         });

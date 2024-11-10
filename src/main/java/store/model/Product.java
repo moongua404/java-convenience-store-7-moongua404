@@ -6,20 +6,29 @@ public class Product {
     private String name;
     private int price;
     private int amount;
-    private String promotion;
+    private int promotionAmount;
+    private Promotion promotion;
 
-    public Product(ProductDto productDto) {
+    public Product(ProductDto productDto, Promotion promotion) {
         this.name = productDto.getName();
         this.price = productDto.getPrice();
-        this.amount = productDto.getAmount();
-        this.promotion = productDto.getPromotion();
+        this.promotionAmount = productDto.getAmount();
+        this.promotion = promotion;
+        if (promotion == null) {
+            this.promotionAmount = 0;
+            this.amount = productDto.getAmount();
+        }
     }
 
-    public Product(String name, int price, int amount, String promotion) {
+    public Product(String name, int price, int amount, Promotion promotion) {
         this.name = name;
         this.price = price;
-        this.amount = amount;
+        this.promotionAmount = amount;
         this.promotion = promotion;
+        if (promotion == null) {
+            this.promotionAmount = 0;
+            this.amount = amount;
+        }
     }
 
     public String getName() {
@@ -34,7 +43,23 @@ public class Product {
         return amount;
     }
 
-    public String getPromotion() {
+    public int getTotalAmount() {
+        return amount + promotionAmount;
+    }
+
+    public int getPromotionAmount() {
+        return promotionAmount;
+    }
+
+    public void addAmount(int amount, boolean isPromotion) {
+        if (isPromotion) {
+            promotionAmount += amount;
+            return;
+        }
+        this.amount += amount;
+    }
+
+    public Promotion getPromotion() {
         return promotion;
     }
 }
