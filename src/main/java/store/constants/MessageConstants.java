@@ -12,7 +12,7 @@ public enum MessageConstants {
     RECEIPT_ITEM("%s\t\t%s\t%s"),
     SHOPPING_CONTINUE("감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)");
 
-    private String message;
+    private final String message;
 
     MessageConstants(String message) {
         this.message = message;

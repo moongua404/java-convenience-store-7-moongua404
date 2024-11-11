@@ -13,31 +13,27 @@ public class PromotionDto {
     private final LocalDateTime endDate;
 
     public PromotionDto(
-            String name,
-            int buy,
-            int get,
-            LocalDateTime start_date,
-            LocalDateTime end_date
-    ) throws Exception {
-        if (name == null || buy <= 0 || get <= 0 || start_date == null) {
-            throw ExceptionConstants.INVALID_PROMOTION.getException();
-        }
+            String name, int buy, int get, LocalDateTime startDate, LocalDateTime endDate) throws Exception {
+        validatePromotionDto(name, buy, get, startDate, endDate);
         this.name = name;
         this.buy = buy;
         this.get = get;
-        this.startDate = start_date;
-        this.endDate = end_date;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
+    private void validatePromotionDto(String name, int buy, int get,
+                                      LocalDateTime start, LocalDateTime end) throws Exception {
+        if (name == null || start == null || end == null || buy <= 0 || get <= 0) {
+            throw ExceptionConstants.INVALID_PROMOTION.getException();
+        }
     }
 
     @Override
     public String toString() {
         return String.format(
                 MessageConstants.PROMOTE_MESSAGE.getMessage(),
-                name,
-                buy,
-                get,
-                startDate.toString(),
-                endDate.toString());
+                name, buy, get, startDate.toString(), endDate.toString());
     }
 
     public String getName() {

@@ -4,12 +4,12 @@ import store.constants.ExceptionConstants;
 import store.constants.MessageConstants;
 
 public class ProductDto {
-    private String name;
-    private int price;
-    private int amount;
-    private String promotion;
+    private final String name;
+    private final int price;
+    private final int amount;
+    private final String promotion;
 
-    private final String EMPTY_MESSAGE = "";
+    private static final String EMPTY_MESSAGE = "";
 
     public ProductDto(String name, int price, int amount, String promotion) throws Exception {
         if (name == null || price <= 0 || amount <= 0) {
@@ -29,10 +29,7 @@ public class ProductDto {
         }
         return String.format(
                 MessageConstants.ITEM_MESSAGE.getMessage(),
-                this.name,
-                this.price,
-                this.amount,
-                promotionMessage
+                this.name, this.price, this.amount, promotionMessage
         );
     }
 

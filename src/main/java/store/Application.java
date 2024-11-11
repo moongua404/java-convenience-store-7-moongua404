@@ -1,7 +1,6 @@
 package store;
 
 import store.controller.StoreController;
-import store.model.Stores;
 import store.service.StoreService;
 import store.view.InputView;
 import store.view.OutputView;
@@ -12,13 +11,11 @@ public class Application {
         InputView inputView = new InputView();
         OutputView outputView = new OutputView();
         StoreService storeService = new StoreService();
-        Stores store = new Stores();
-        StoreController storeController = new StoreController(
-                inputView,
-                outputView,
-                storeService
-        );
+        StoreController storeController = new StoreController(inputView, outputView, storeService);
+        flow(storeController);
+    }
 
+    private static void flow(StoreController storeController) {
         try {
             storeController.run();
         } catch (Exception exception) {

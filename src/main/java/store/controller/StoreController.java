@@ -27,7 +27,7 @@ public class StoreController {
     Stores store;
 
     private final float MEMBERSHIP_DISCOUNT_RATE = 0.3f;
-    private final int MAX_MEMBERSHIP_DISCOUNT = 8000;
+    private static final int MAX_MEMBERSHIP_DISCOUNT = 8000;
 
     public StoreController(
             InputView inputView,
@@ -44,21 +44,23 @@ public class StoreController {
         setup();
         boolean shoppingContinue = true;
         while (shoppingContinue) {
-            printGuide();
-            List<Purchase> purchased = purchase();
-            adjustPurchase(purchased);
-            boolean applyPromotion = getMembershipResponse(MessageConstants.MEMBERSHIP_DISCOUNT_REQUEST);
-            List<ReceiptDto> receiptDto = dealCompletion(purchased);
-            getReceipt(receiptDto, applyPromotion);
+            businessLogic();
             shoppingContinue = getShoppingContinue();
         }
     }
 
+    private void businessLogic() throws Exception {
+        printGuide();
+        List<Purchase> purchased = purchase();
+        adjustPurchase(purchased);
+        boolean applyPromotion = getMembershipResponse();
+        List<ReceiptDto> receiptDto = dealCompletion(purchased);
+        getReceipt(receiptDto, applyPromotion);
+    }
+
     private void setup() throws Exception {
         Map<String, Promotion> promotions = new HashMap<>();
-        storeService.loadPromotion().forEach((dto) -> {
-            promotions.put(dto.getName(), new Promotion(dto));
-        });
+        storeService.loadPromotion().forEach((dto) -> promotions.put(dto.getName(), new Promotion(dto)));
         store.receiveRemain(storeService.loadItem().stream()
                 .map((dto) -> new Product(dto, promotions.get(dto.getPromotion())))
                 .toList()
@@ -77,12 +79,16 @@ public class StoreController {
             try {
                 return getPurchaseInput();
             } catch (Exception exception) {
-                if (exception.getClass() == NoSuchElementException.class) {
-                    throw exception;
-                }
-                outputView.printMessage(exception.getMessage());
+                handleInputExcept(exception);
             }
         }
+    }
+
+    private void handleInputExcept(Exception exception) throws Exception {
+        if (exception.getClass() == NoSuchElementException.class) {
+            throw exception;
+        }
+        outputView.printMessage(exception.getMessage());
     }
 
     private List<Purchase> getPurchaseInput() throws Exception {
@@ -91,11 +97,15 @@ public class StoreController {
             throw new NoSuchElementException();
         }
         List<PurchaseDto> parsedPurchase = storeService.parsePurchaseDto(response);
-        List<Purchase> purchased = parsedPurchase.stream()
-                .map((dto) -> new Purchase(dto, store.getItem(dto.getName())))
-                .toList();
+        List<Purchase> purchased = convertDtoToPurchase(parsedPurchase);
         store.validatePurchase(purchased);
         return purchased;
+    }
+
+    List<Purchase> convertDtoToPurchase(List<PurchaseDto> parsedPurchase) {
+        return parsedPurchase.stream()
+                .map((dto) -> new Purchase(dto, store.getItem(dto.getName())))
+                .toList();
     }
 
     private void adjustPurchase(List<Purchase> purchases) throws Exception {
@@ -121,22 +131,17 @@ public class StoreController {
             try {
                 return inputView.readYorN(message, name, price);
             } catch (Exception exception) {
-                if (exception.getClass() == NoSuchElementException.class) {
-                    throw exception;
-                }
-                outputView.printMessage(exception.getMessage());
+                handleInputExcept(exception);
             }
         }
     }
 
-    private boolean getMembershipResponse(MessageConstants message) throws Exception {
+    private boolean getMembershipResponse() throws Exception {
         while (true) {
             try {
-                return inputView.readYorN(message);
+                return inputView.readYorN(MessageConstants.MEMBERSHIP_DISCOUNT_REQUEST);
             } catch (Exception exception) {
-                if (exception.getClass() == NoSuchElementException.class) {
-                    throw exception;
-                }
+                handleInputExcept(exception);
                 outputView.printMessage(exception.getMessage());
             }
         }
@@ -147,9 +152,7 @@ public class StoreController {
             try {
                 return inputView.readYorN(MessageConstants.SHOPPING_CONTINUE);
             } catch (Exception exception) {
-                if (exception.getClass() == NoSuchElementException.class) {
-                    throw exception;
-                }
+                handleInputExcept(exception);
                 outputView.printMessage(exception.getMessage());
             }
         }
@@ -157,50 +160,71 @@ public class StoreController {
 
     private List<ReceiptDto> dealCompletion(List<Purchase> purchases) {
         List<ReceiptDto> receiptDto = new ArrayList<>();
-        purchases.forEach(purchase -> {
-            receiptDto.add(purchase.commit());
-        });
+        purchases.forEach(purchase -> receiptDto.add(purchase.commit()));
         return receiptDto;
     }
 
     private void getReceipt(List<ReceiptDto> receiptDto, boolean applyPromotion) {
-        int totalPrice = 0;
-        int totalCount = 0;
-        int promotePrice = 0;
-        int membershipPrice = 0;
-        outputView.printReceiptHeader("W 편의점");
-        outputView.printReceiptItem("상품명", "수량", "금액");
-        for (ReceiptDto dto : receiptDto) {
-            outputView.printReceiptItem(dto.getName(), Integer.toString(dto.getAmount()),
-                    Integer.toString(dto.getPrice() * dto.getAmount()));
-        }
-        outputView.printReceiptHeader("증\t정");
-        for (ReceiptDto dto : receiptDto) {
-            if (dto.getType() == PurchaseType.PROMOTION) {
-                outputView.printReceiptItem(dto.getName(), Integer.toString(dto.getBonus()), "");
-            }
-        }
-        outputView.printReceiptHeader("=====");
-        for (ReceiptDto dto : receiptDto) {
-            totalPrice += dto.getPrice() * dto.getAmount();
-            totalCount += dto.getAmount();
-            if (dto.getType() == PurchaseType.PROMOTION) {
-                promotePrice += dto.getPrice() * dto.getBonus();
-            }
-            if (dto.getType() == PurchaseType.MEMBERSHIP) {
-                membershipPrice += (int) (dto.getPrice() * dto.getAmount() * MEMBERSHIP_DISCOUNT_RATE);
-            }
-        }
+        showReceiptItems(receiptDto);
+        showReceiptPromotion(receiptDto);
+        int totalPrice = calculateTotalPrice(receiptDto);
+        int totalCount = calculateTotalCount(receiptDto);
+        int promotePrice = calculatePromotionPrice(receiptDto);
+        int membershipPrice = adjustMembershipPrice(calculateMembershipPrice(receiptDto), applyPromotion);
+        outputView.printReceiptResult(totalPrice, totalCount, promotePrice, membershipPrice);
+    }
+
+    private int adjustMembershipPrice(int membershipPrice, boolean applyPromotion) {
         if (membershipPrice > MAX_MEMBERSHIP_DISCOUNT) {
             membershipPrice = MAX_MEMBERSHIP_DISCOUNT;
         }
         if (!applyPromotion) {
             membershipPrice = 0;
         }
-        outputView.printReceiptItem("총구매액", Integer.toString(totalCount), Integer.toString(totalPrice));
-        outputView.printReceiptItem("행사할인", "", Integer.toString(-promotePrice));
-        outputView.printReceiptItem("멤버십할인", "", Integer.toString(-membershipPrice));
-        outputView.printReceiptItem("내실돈", "", String.format("%,d", totalPrice - promotePrice - membershipPrice));
-        //outputView.printReceiptItem("내실돈", "", Integer.toString(totalPrice - promotePrice - membershipPrice));
+        return membershipPrice;
+    }
+
+    private int calculateTotalPrice(List<ReceiptDto> receiptDto) {
+        return receiptDto.stream()
+                .mapToInt(dto -> dto.getPrice() * dto.getAmount())
+                .sum();
+    }
+
+    private int calculateTotalCount(List<ReceiptDto> receiptDto) {
+        return receiptDto.stream()
+                .mapToInt(ReceiptDto::getAmount)
+                .sum();
+    }
+
+    private int calculatePromotionPrice(List<ReceiptDto> receiptDto) {
+        return receiptDto.stream()
+                .filter(dto -> dto.getType() == PurchaseType.PROMOTION)
+                .mapToInt(dto -> dto.getPrice() * dto.getBonus())
+                .sum();
+    }
+
+    private int calculateMembershipPrice(List<ReceiptDto> receiptDto) {
+        return receiptDto.stream()
+                .filter(dto -> dto.getType() == PurchaseType.MEMBERSHIP)
+                .mapToInt(dto -> (int) (dto.getPrice() * dto.getAmount() * MEMBERSHIP_DISCOUNT_RATE))
+                .sum();
+    }
+
+
+    private void showReceiptItems(List<ReceiptDto> receiptDto) {
+        outputView.printReceiptStart();
+        for (ReceiptDto dto : receiptDto) {
+            outputView.printReceiptItem(dto.getName(), Integer.toString(dto.getAmount()),
+                    Integer.toString(dto.getPrice() * dto.getAmount()));
+        }
+    }
+
+    private void showReceiptPromotion(List<ReceiptDto> receiptDto) {
+        outputView.printReceiptPromotionHeader();
+        for (ReceiptDto dto : receiptDto) {
+            if (dto.getType() == PurchaseType.PROMOTION) {
+                outputView.printReceiptItem(dto.getName(), Integer.toString(dto.getBonus()), "");
+            }
+        }
     }
 }

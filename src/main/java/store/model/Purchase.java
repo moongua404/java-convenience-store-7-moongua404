@@ -6,9 +6,9 @@ import store.model.dto.ReceiptDto;
 import store.model.dto.ReceiptDto.PurchaseType;
 
 public class Purchase {
-    private String name;
+    private final String name;
     private int amount;
-    private Product product;
+    private final Product product;
 
     private final int ZERO = 0;
 
@@ -32,10 +32,6 @@ public class Purchase {
         return amount;
     }
 
-    public Product getProduct() {
-        return product;
-    }
-
     public ReceiptDto commit() {
         Promotion promotion = product.getPromotion();
         if (promotion != null && promotion.isValidOn(Utils.getToday())) {
@@ -50,15 +46,21 @@ public class Purchase {
 
     private ReceiptDto subOnPromotion(Promotion promotion) {
         int bonus = countPromotionGet(product.getPromotionAmount(), this.amount, promotion.getBundle());
-        if (product.getPromotionAmount() <= this.amount) {
-            int amount = product.getPromotionAmount();
-            product.addAmount(-amount, true);
-            product.addAmount(-(product.getAmount() - amount), false);
-            return makeReceiptDto(this.getName(), this.product.getPrice(), this.amount, bonus, false);
-        }
-        product.addAmount(-bonus * promotion.getBundle(), true);
-        product.addAmount(-(this.amount - bonus * promotion.getBundle()), false);
+        int effectiveAmount = Math.min(product.getPromotionAmount(), this.amount);
+
+        adjustProductAmount(effectiveAmount, bonus, promotion.getBundle());
+
         return makeReceiptDto(this.getName(), this.product.getPrice(), this.amount, bonus, false);
+    }
+
+    private void adjustProductAmount(int effectiveAmount, int bonus, int bundleSize) {
+        if (effectiveAmount <= this.amount) {
+            product.addAmount(-effectiveAmount, true);
+            product.addAmount(-(product.getAmount() - effectiveAmount), false);
+        } else {
+            product.addAmount(-bonus * bundleSize, true);
+            product.addAmount(-(this.amount - bonus * bundleSize), false);
+        }
     }
 
     private ReceiptDto subOnMembership() {

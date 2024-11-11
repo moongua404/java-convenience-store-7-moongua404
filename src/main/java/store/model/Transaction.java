@@ -1,9 +1,9 @@
 package store.model;
 
 public class Transaction {
-    private Purchase target;
+    private final Purchase target;
     private int amount;
-    private TransactionType type;
+    private final TransactionType type;
 
     public Transaction(Purchase target, int amount, TransactionType type) {
         this.amount = amount;

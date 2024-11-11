@@ -28,7 +28,7 @@ public class StoreService {
                 .skip(1)
                 .map((line) -> separateData(line, COMMA_DELIMITER))
                 .toList();
-        return ParseToProduct(parsedContent);
+        return parseToProduct(parsedContent);
     }
 
     public List<PromotionDto> loadPromotion() throws Exception {
@@ -39,7 +39,7 @@ public class StoreService {
                 .skip(1)
                 .map((line) -> separateData(line, COMMA_DELIMITER))
                 .toList();
-        return ParseToPromotion(parsedContent);
+        return parseToPromotion(parsedContent);
     }
 
     public List<PurchaseDto> parsePurchaseDto(String response) throws Exception {
@@ -53,18 +53,14 @@ public class StoreService {
     }
 
     private PurchaseDto parseProductPurchaseDto(String itemInfo) throws Exception {
-        Pattern pattern = Pattern.compile("^\\[([\\\\w가-힣]+)-(\\d+)\\]");
+        Pattern pattern = Pattern.compile("^\\[([\\w가-힣]+)-(\\d+)\\]");
         Matcher matcher = pattern.matcher(itemInfo);
-        try {
-            if (matcher.matches()) {
-                String name = matcher.group(1);
-                int amount = parseInt(matcher.group(2));
-                return new PurchaseDto(name, amount);
-            }
-            throw new Exception();
-        } catch (Exception exception) {
-            throw ExceptionConstants.INVALID_INPUT.getException();
+        if (matcher.matches()) {
+            String name = matcher.group(1);
+            int amount = parseInt(matcher.group(2));
+            return new PurchaseDto(name, amount);
         }
+        throw ExceptionConstants.INVALID_INPUT.getException();
     }
 
     private String getFileData(Path path) throws Exception {
@@ -79,32 +75,42 @@ public class StoreService {
         return List.of(content.split(delimiter));
     }
 
-    private List<ProductDto> ParseToProduct(List<List<String>> content) throws Exception {
-        List<ProductDto> parsedData = new ArrayList<>();
-        for (List<String> line : content) {
-            String name = line.getFirst();
-            int price = parseInt(line.get(1));
-            int amount = parseInt(line.get(2));
-            String promotion = line.get(3);
-            if (promotion.equals(NULL_DELIMITER)) {
-                promotion = null;
-            }
-            parsedData.add(new ProductDto(name, price, amount, promotion));
+    private List<ProductDto> parseToProduct(List<List<String>> content) throws Exception {
+        List<ProductDto> list = new ArrayList<>();
+        for (List<String> strings : content) {
+            ProductDto productDto = parseLineToProductDto(strings);
+            list.add(productDto);
         }
-        return parsedData;
+        return list;
     }
 
-    private List<PromotionDto> ParseToPromotion(List<List<String>> content) throws Exception {
-        List<PromotionDto> parsedData = new ArrayList<>();
-        for (List<String> line : content) {
-            String name = line.get(0);
-            int buy = parseInt(line.get(1));
-            int get = parseInt(line.get(2));
-            LocalDateTime startTime = parseDate(line.get(3));
-            LocalDateTime endTime = parseDate(line.get(4)).plusDays(1);
-            parsedData.add(new PromotionDto(name, buy, get, startTime, endTime));
+    private ProductDto parseLineToProductDto(List<String> line) throws Exception {
+        String name = line.get(0);
+        int price = parseInt(line.get(1));
+        int amount = parseInt(line.get(2));
+        String promotion = line.get(3);
+        if (NULL_DELIMITER.equals(promotion)) {
+            promotion = null;
         }
-        return parsedData;
+        return new ProductDto(name, price, amount, promotion);
+    }
+
+    private List<PromotionDto> parseToPromotion(List<List<String>> content) throws Exception {
+        List<PromotionDto> list = new ArrayList<>();
+        for (List<String> strings : content) {
+            PromotionDto promotionDto = parseLineToPromotionDto(strings);
+            list.add(promotionDto);
+        }
+        return list;
+    }
+
+    private PromotionDto parseLineToPromotionDto(List<String> line) throws Exception {
+        String name = line.get(0);
+        int buy = parseInt(line.get(1));
+        int get = parseInt(line.get(2));
+        LocalDateTime startTime = parseDate(line.get(3));
+        LocalDateTime endTime = parseDate(line.get(4)).plusDays(1);
+        return new PromotionDto(name, buy, get, startTime, endTime);
     }
 
     private int parseInt(String token) throws Exception {

@@ -6,7 +6,7 @@ public enum TransactionType {
     ADD(MessageConstants.GET_PROMOTION_PRODUCT_REQUEST),
     SUB(MessageConstants.FULL_PRICE_PAYMENT_REQUEST);
 
-    MessageConstants messageConstants;
+    final MessageConstants messageConstants;
 
     TransactionType(MessageConstants messageConstants) {
         this.messageConstants = messageConstants;

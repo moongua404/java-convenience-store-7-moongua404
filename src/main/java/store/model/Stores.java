@@ -12,8 +12,6 @@ public class Stores {
 
     private final Map<String, Product> remain = new HashMap<>();
 
-    private final int ZERO = 0;
-
     public Stores() {
         utils = new Utils();
     }
@@ -70,17 +68,29 @@ public class Stores {
         if (target == null) {
             return null;
         }
-        if (target.getPromotion() != null && target.getPromotion().isValidOn(Utils.getToday())) {
-            int bundle = target.getPromotion().getBundle();
-            int promotionAvailable = (target.getPromotionAmount() / bundle) * bundle;
-            if (purchased.getAmount() > promotionAvailable) {
-                return new Transaction(purchased, purchased.getAmount() - promotionAvailable, TransactionType.SUB);
-            }
-            if (promotionAvailable >= purchased.getAmount() + target.getPromotion().getGet()
-                    && purchased.getAmount() % bundle == target.getPromotion().getBuy()) {
-                return new Transaction(purchased, target.getPromotion().getGet(), TransactionType.ADD);
-            }
+        if (isPromotionValid(target)) {
+            return composeTransaction(purchased, target, target.getPromotion().getBundle());
         }
         return null;
+    }
+
+    private Transaction composeTransaction(Purchase purchased, Product target, int bundle) {
+        int promotionAvailable = (target.getPromotionAmount() / bundle) * bundle;
+        if (purchased.getAmount() > promotionAvailable) {
+            return new Transaction(purchased, purchased.getAmount() - promotionAvailable, TransactionType.SUB);
+        }
+        if (isAddCondition(target, purchased, promotionAvailable, bundle)) {
+            return new Transaction(purchased, target.getPromotion().getGet(), TransactionType.ADD);
+        }
+        return null;
+    }
+
+    private boolean isAddCondition(Product target, Purchase purchased, int promotionAvailable, int bundle) {
+        return promotionAvailable >= purchased.getAmount() + target.getPromotion().getGet()
+                && purchased.getAmount() % bundle == target.getPromotion().getBuy();
+    }
+
+    private boolean isPromotionValid(Product target) {
+        return target.getPromotion() != null && target.getPromotion().isValidOn(Utils.getToday());
     }
 }

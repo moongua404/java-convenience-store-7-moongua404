@@ -1,11 +1,11 @@
 package store.model.dto;
 
 public class ReceiptDto {
-    private String name;
-    private int amount;
-    private int bonus;
-    private int price;
-    private PurchaseType type;
+    private final String name;
+    private final int amount;
+    private final int bonus;
+    private final int price;
+    private final PurchaseType type;
 
     public enum PurchaseType {
         FULL_PRICE,

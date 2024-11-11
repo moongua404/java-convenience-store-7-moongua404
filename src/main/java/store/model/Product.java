@@ -3,11 +3,11 @@ package store.model;
 import store.model.dto.ProductDto;
 
 public class Product {
-    private String name;
-    private int price;
+    private final String name;
+    private final int price;
     private int amount;
     private int promotionAmount;
-    private Promotion promotion;
+    private final Promotion promotion;
 
     public Product(ProductDto productDto, Promotion promotion) {
         this.name = productDto.getName();
@@ -57,15 +57,6 @@ public class Product {
             return;
         }
         this.amount += amount;
-    }
-
-    public void subAmount(int amount) {
-        int rest = this.promotionAmount % this.getPromotion().getBundle();
-        if (rest != 0) {
-            this.promotionAmount -= rest;
-            amount -= rest;
-        }
-        this.amount -= amount;
     }
 
     public Promotion getPromotion() {
