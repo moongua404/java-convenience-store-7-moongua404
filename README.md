@@ -210,17 +210,17 @@ N
 
 ## 구현 기능 목록
 ### 입력
-- [ ] 재고 관리 (json으로 파일 입출력을 한다)
-- [ ] 상품 입력
+- [✅] 재고 관리 (json으로 파일 입출력을 한다)
+- [✅] 상품 입력
 	- 상품을 입력받는다
 	- 상품이 구매가능한지 검증하는 로직을 포함한다. 
-- [ ] 상품 구매
+- [✅] 상품 구매
 	- 상품을 구매한다
-- [ ] 할인 적용
+- [✅] 할인 적용
 	- 할인을 적용한다
 		- 프로모션 적용
 		- 멤버십 할인
-- [ ] 영수증 출력
+- [✅] 영수증 출력
 	- 구매에 대한 영수증을 출력한다
 	- 구매 목록 및 상품 가격, 증정 상품 및 할인액, 총 구매액, 내야할 돈 ...
 
@@ -233,13 +233,29 @@ sequenceDiagram
 	
 	Controller->>Model: Item Load
 	Model-->Controller: Item Return
+	loop Each Event
 	Controller->>View: Print Item
 	View->>Controller: Purchase(Input)
-	loop Each Event
 		Controller->>Model: Check Event
 		Model->>Controller: Applicable Event
 		Controller->>View: Applicate Event
 		View->>Controller: Answer
-	end
 	Controller->>View: Print Reciept
+	end
 ```
+
+## Idea of Business Logic
+- 상품(재고)를 store(편의점)에 저장해 둔다.
+	- 각 상품은 적용되는 프로모션을 참조로 가진다.
+
+(구매)
+- 사용자가 구매를 요청하면 `구매`를 담당하는 객체를 생성한다.
+	- `구매`라는 객체는 저장된 상품에 대한 참조를 가지며 각 상품마다 다른 인스턴스를 가진다.
+- 상품의 프로모션 적용 여부 때문에 수량의 변경이 필요한 `구매`에 대해 수정을 담당하는 `트랜잭션`을 만든다. (트랜잭션이라는 이름은,,, 적절하지 않은 것 같다;;)
+ 	- `트랜잭션`은 `구매`에 대한 참조와 변동할 양을 담는다.
+- `트랜잭션`의 적용 여부를 사용자에게 묻는다.
+
+(처리)
+- `트랜잭션`의 참조에 있는 `구매`를 수정한다.
+- `구매`의 참조에 있는 `상품`을 수정한다.
+- 수정된 정보를 모아 영수증으로 출력한다. 
