@@ -1,4 +1,4 @@
-package store.model;
+package store;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,6 +8,12 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import store.constants.ExceptionConstants;
+import store.model.Product;
+import store.model.Promotion;
+import store.model.Purchase;
+import store.model.Stores;
+import store.model.Transaction;
+import store.model.TransactionType;
 
 public class StoreTest {
     private Stores store;
