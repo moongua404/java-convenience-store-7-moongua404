@@ -2,6 +2,7 @@ package store.view;
 
 import store.constants.MessageConstants;
 import store.model.Product;
+import store.model.Promotion;
 
 public class OutputView {
     String EMPTY_MARK = "";
@@ -13,15 +14,21 @@ public class OutputView {
         System.out.println(messageConstants.getMessage());
     }
 
-    public void printProducts(Product product) {
+    public void printProducts(Product product, boolean hasPromotion) {
         String price = String.format("%,d", product.getPrice()) + PRICE_UNIT;
-        String amount = formatPrice(product);
-        String promotion = formatPromotion(product);
-
+        String amount = formatAmount(product.getAmount());
+        String promotion = formatPromotion(null);
+        if (hasPromotion) {
+            amount = formatAmount(product.getPromotionAmount());
+            promotion = formatPromotion(product.getPromotion());
+        }
         System.out.println(String.format(
                 MessageConstants.ITEM_MESSAGE.getMessage(),
                 product.getName(), price, amount, promotion
         ));
+        if (hasPromotion) {
+            printProducts(product, false);
+        }
     }
 
     public void newLine() {
@@ -32,17 +39,31 @@ public class OutputView {
         System.out.println(message);
     }
 
-    private String formatPrice(Product product) {
-        if (product.getAmount() == 0) {
-            return EMPTY_AMOUNT;
-        }
-        return String.valueOf(product.getAmount()) + AMOUNT_UNIT;
+    public void printReceiptHeader(String header) {
+        System.out.println(String.format(
+                MessageConstants.RECEIPT_DIVIDE_LINE.getMessage(),
+                header
+        ));
     }
 
-    private String formatPromotion(Product product) {
-        if (product.getPromotion() == null) {
+    public void printReceiptItem(String first, String second, String third) {
+        System.out.println(String.format(
+                MessageConstants.RECEIPT_ITEM.getMessage(),
+                first, second, third
+        ));
+    }
+
+    private String formatAmount(int amount) {
+        if (amount == 0) {
+            return EMPTY_AMOUNT;
+        }
+        return String.valueOf(amount) + AMOUNT_UNIT;
+    }
+
+    private String formatPromotion(Promotion promotion) {
+        if (promotion == null) {
             return EMPTY_MARK;
         }
-        return product.getPromotion().getName();
+        return promotion.getName();
     }
 }

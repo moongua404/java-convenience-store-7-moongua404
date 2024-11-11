@@ -22,15 +22,19 @@ public class Store {
         for (Product item : remain) {
             if (this.remain.containsKey(item.getName())) {
                 this.remain.get(item.getName())
-                        .addAmount(item.getAmount(), item.getPromotion() == null);
-            } else {
-                this.remain.put(item.getName(), item);
+                        .addAmount(item.getAmount(), item.getPromotion() != null);
+                continue;
             }
+            this.remain.put(item.getName(), item);
         }
     }
 
     public List<Product> getRemains() {
         return remain.values().stream().toList();
+    }
+
+    public Product getItem(String name) {
+        return remain.get(name);
     }
 
     public void validatePurchase(List<Purchase> purchases) throws Exception {
@@ -54,8 +58,6 @@ public class Store {
         }
     }
 
-    // 일단 여기까지 검수함
-
     public List<Transaction> makeTransaction(List<Purchase> purchases) {
         return purchases.stream()
                 .map(this::makeTransaction)
@@ -72,11 +74,11 @@ public class Store {
             int bundle = target.getPromotion().getBundle();
             int promotionAvailable = (target.getPromotionAmount() / bundle) * bundle;
             if (purchased.getAmount() > promotionAvailable) {
-                return new Transaction(target, purchased.getAmount() - promotionAvailable, TransactionType.SUB);
+                return new Transaction(purchased, purchased.getAmount() - promotionAvailable, TransactionType.SUB);
             }
             if (promotionAvailable >= purchased.getAmount() + target.getPromotion().getGet()
                     && purchased.getAmount() % bundle == target.getPromotion().getBuy()) {
-                return new Transaction(target, target.getPromotion().getGet(), TransactionType.ADD);
+                return new Transaction(purchased, target.getPromotion().getGet(), TransactionType.ADD);
             }
         }
         return null;

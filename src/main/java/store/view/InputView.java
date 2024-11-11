@@ -11,8 +11,8 @@ public class InputView {
         return Console.readLine();
     }
 
-    public boolean readYorN(MessageConstants message) throws Exception {
-        System.out.println(message.getMessage());
+    public boolean readYorN(MessageConstants message, String name, int amount) throws Exception {
+        System.out.println(String.format(message.getMessage(), name, amount));
         String line = Console.readLine();
         if (Objects.equals(line, "Y")) {
             return true;

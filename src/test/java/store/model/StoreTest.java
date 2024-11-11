@@ -12,14 +12,18 @@ import store.constants.ExceptionConstants;
 public class StoreTest {
     private Store store;
 
+    private Product product1;
+    private Product product2;
+    private Product product3;
+
     @BeforeEach
     public void setUp() throws Exception {
         store = new Store();
         Promotion promotion = new Promotion("탄산2+1", 2, 1, LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(10));
-        Product product1 = new Product("콜라", 2100, 10, promotion);
-        Product product2 = new Product("사이다", 750, 5, promotion);
-        Product product3 = new Product("집가고싶다", 1000, 4, null);
+        product1 = new Product("콜라", 2100, 10, promotion);
+        product2 = new Product("사이다", 750, 5, promotion);
+        product3 = new Product("집가고싶다", 1000, 4, null);
         store.receiveRemain(List.of(product1, product2, product3));
     }
 
@@ -45,13 +49,13 @@ public class StoreTest {
 
     @Test
     void testValidatePurchase_Success() throws Exception {
-        Purchase purchase = new Purchase("콜라", 5);
+        Purchase purchase = new Purchase("콜라", 5, product1);
         store.validatePurchase(purchase); // 예외가 발생하지 않아야 함
     }
 
     @Test
     void testValidatePurchase_ProductUnavailable() {
-        Purchase purchase = new Purchase("곰탕", 1);
+        Purchase purchase = new Purchase("곰탕", 1, null);
         Exception exception = assertThrows(Exception.class, () -> {
             store.validatePurchase(purchase);
         });
@@ -62,7 +66,7 @@ public class StoreTest {
 
     @Test
     void testValidatePurchase_ExceededAmount() {
-        Purchase purchase = new Purchase("사이다", 6);
+        Purchase purchase = new Purchase("사이다", 6, product2);
         Exception exception = assertThrows(Exception.class, () -> {
             store.validatePurchase(purchase);
         });
@@ -72,7 +76,7 @@ public class StoreTest {
 
     @Test
     void testValidatePurchase_NegativeAmount() {
-        Purchase purchase = new Purchase("콜라", -1);
+        Purchase purchase = new Purchase("콜라", -1, product1);
         Exception exception = assertThrows(Exception.class, () -> {
             store.validatePurchase(purchase);
         });
@@ -82,7 +86,7 @@ public class StoreTest {
 
     @Test
     void testMakeTransaction_Add() throws Exception {
-        Purchase purchase = new Purchase("콜라", 2);
+        Purchase purchase = new Purchase("콜라", 2, product1);
         Transaction result = store.makeTransaction(purchase);
 
         assertThat(result.getTarget().getName()).isEqualTo("콜라");
@@ -92,7 +96,7 @@ public class StoreTest {
 
     @Test
     void testGetAdjustRequests_Sub() {
-        Purchase purchase = new Purchase("콜라", 15);
+        Purchase purchase = new Purchase("콜라", 15, product1);
         Transaction result = store.makeTransaction(purchase);
 
         assertThat(result.getTarget().getName()).isEqualTo("콜라");
@@ -103,7 +107,7 @@ public class StoreTest {
     //이 테스트는 뺄지 넣을지 고민할 필요가 있음
     @Test
     void testGetAdjustRequests_InvalidProduct() {
-        Purchase purchase = new Purchase("나v자바v바라", 2);
+        Purchase purchase = new Purchase("나v자바v바라", 2, null);
         List<Transaction> result = store.makeTransaction(List.of(purchase));
 
         assertThat(result).isEmpty();
@@ -119,7 +123,7 @@ public class StoreTest {
         Product product = new Product("집가고싶다", 1000, 4, expiredPromotion);
         store.receiveRemain(List.of(product));
 
-        Purchase purchase = new Purchase("집가고싶다", 2);
+        Purchase purchase = new Purchase("집가고싶다", 2, product3);
         List<Transaction> result = store.makeTransaction(List.of(purchase));
 
         assertThat(result).isEmpty();

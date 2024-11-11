@@ -1,17 +1,17 @@
 package store.model;
 
 public class Transaction {
-    private Product target;
+    private Purchase target;
     private int amount;
     private TransactionType type;
 
-    public Transaction(Product target, int amount, TransactionType type) {
+    public Transaction(Purchase target, int amount, TransactionType type) {
         this.amount = amount;
         this.type = type;
         this.target = target;
     }
 
-    public Product getTarget() {
+    public Purchase getTarget() {
         return target;
     }
 
@@ -25,10 +25,10 @@ public class Transaction {
 
     public void commit() {
         if (type == TransactionType.ADD) {
-            target.addAmount(amount, true);
+            target.addAmount(amount);
         }
         if (type == TransactionType.SUB) {
-            target.subAmount(amount);
+            target.addAmount(-amount);
         }
     }
 }

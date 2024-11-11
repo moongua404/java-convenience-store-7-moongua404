@@ -16,8 +16,4 @@ public class PurchaseDto {
     public int getAmount() {
         return amount;
     }
-
-    public void validation() throws Exception {
-
-    }
 }
