@@ -10,7 +10,7 @@ import store.constants.MessageConstants;
 import store.model.Product;
 import store.model.Promotion;
 import store.model.Purchase;
-import store.model.Store;
+import store.model.Stores;
 import store.model.Transaction;
 import store.model.TransactionType;
 import store.model.dto.PurchaseDto;
@@ -24,7 +24,7 @@ public class StoreController {
     InputView inputView;
     OutputView outputView;
     StoreService storeService;
-    Store store;
+    Stores store;
 
     private final float MEMBERSHIP_DISCOUNT_RATE = 0.3f;
     private final int MAX_MEMBERSHIP_DISCOUNT = 8000;
@@ -37,7 +37,7 @@ public class StoreController {
         this.inputView = inputView;
         this.outputView = outputView;
         this.storeService = storeService;
-        store = new Store();
+        store = new Stores();
     }
 
     public void run() throws Exception {

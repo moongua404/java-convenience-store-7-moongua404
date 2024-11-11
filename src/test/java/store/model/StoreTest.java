@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import store.constants.ExceptionConstants;
 
 public class StoreTest {
-    private Store store;
+    private Stores store;
 
     private Product product1;
     private Product product2;
@@ -18,7 +18,7 @@ public class StoreTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        store = new Store();
+        store = new Stores();
         Promotion promotion = new Promotion("탄산2+1", 2, 1, LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(10));
         product1 = new Product("콜라", 2100, 10, promotion);

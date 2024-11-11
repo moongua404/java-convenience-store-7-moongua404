@@ -7,14 +7,14 @@ import java.util.Objects;
 import store.Utils;
 import store.constants.ExceptionConstants;
 
-public class Store {
+public class Stores {
     private final Utils utils;
 
     private final Map<String, Product> remain = new HashMap<>();
 
     private final int ZERO = 0;
 
-    public Store() {
+    public Stores() {
         utils = new Utils();
     }
 
