@@ -64,6 +64,7 @@ public class OutputView {
     }
 
     public void printReceiptStart() {
+        newLine();
         printReceiptHeader(STORE_NAME);
         printReceiptItem(ITEM_LABEL, AMOUNT_LABEL, PRICE_LABEL);
     }
@@ -88,9 +89,9 @@ public class OutputView {
 
     public void printReceiptResult(int totalPrice, int totalCount, int promotePrice, int membershipPrice) {
         printReceiptHeader(RECEIPT_SEPARATOR);
-        printReceiptItem(TOTAL_PURCHASE_LABEL, Integer.toString(totalCount), Integer.toString(totalPrice));
-        printReceiptItem(PROMOTION_DISCOUNT_LABEL, EMPTY_MARK, Integer.toString(-promotePrice));
-        printReceiptItem(MEMBERSHIP_DISCOUNT_LABEL, EMPTY_MARK, Integer.toString(-membershipPrice));
+        printReceiptItem(TOTAL_PURCHASE_LABEL, Integer.toString(totalCount), String.format(PRICE_FORMAT, totalPrice));
+        printReceiptItem(PROMOTION_DISCOUNT_LABEL, EMPTY_MARK, String.format(PRICE_FORMAT, -promotePrice));
+        printReceiptItem(MEMBERSHIP_DISCOUNT_LABEL, EMPTY_MARK, String.format(PRICE_FORMAT, -membershipPrice));
         printReceiptItem(FINAL_PAYMENT_LABEL, EMPTY_MARK,
                 String.format(PRICE_FORMAT, totalPrice - promotePrice - membershipPrice));
     }

@@ -28,6 +28,7 @@ public class StoreController {
 
     private final float MEMBERSHIP_DISCOUNT_RATE = 0.3f;
     private static final int MAX_MEMBERSHIP_DISCOUNT = 8000;
+    private static final String PRICE_FORMAT = "%,d";
 
     public StoreController(
             InputView inputView,
@@ -46,6 +47,7 @@ public class StoreController {
         while (shoppingContinue) {
             businessLogic();
             shoppingContinue = getShoppingContinue();
+            outputView.newLine();
         }
     }
 
@@ -215,7 +217,7 @@ public class StoreController {
         outputView.printReceiptStart();
         for (ReceiptDto dto : receiptDto) {
             outputView.printReceiptItem(dto.getName(), Integer.toString(dto.getAmount()),
-                    Integer.toString(dto.getPrice() * dto.getAmount()));
+                    String.format(PRICE_FORMAT, dto.getPrice() * dto.getAmount()));
         }
     }
 
