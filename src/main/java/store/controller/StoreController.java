@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import store.constants.ExceptionConstants;
+import java.util.Objects;
 import store.constants.MessageConstants;
 import store.model.Product;
 import store.model.Promotion;
@@ -46,9 +46,6 @@ public class StoreController {
         while (shoppingContinue) {
             printGuide();
             List<Purchase> purchased = purchase();
-            if (purchased == null) {
-                ExceptionConstants.EMPTY_INPUT.getException();
-            }
             adjustPurchase(purchased);
             boolean applyPromotion = getMembershipResponse(MessageConstants.MEMBERSHIP_DISCOUNT_REQUEST);
             List<ReceiptDto> receiptDto = dealCompletion(purchased);
@@ -90,8 +87,8 @@ public class StoreController {
 
     private List<Purchase> getPurchaseInput() throws Exception {
         String response = inputView.readItem();
-        if (response == "") {
-            throw ExceptionConstants.EMPTY_INPUT.getException();
+        if (Objects.equals(response, "")) {
+            throw new NoSuchElementException();
         }
         List<PurchaseDto> parsedPurchase = storeService.parsePurchaseDto(response);
         List<Purchase> purchased = parsedPurchase.stream()
