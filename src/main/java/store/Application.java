@@ -18,7 +18,11 @@ public class Application {
                 outputView,
                 storeService
         );
-        
-        storeController.run();
+
+        try {
+            storeController.run();
+        } catch (Exception exception) {
+            return;
+        }
     }
 }

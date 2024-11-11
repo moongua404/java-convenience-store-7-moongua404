@@ -70,7 +70,7 @@ public class Store {
         if (target == null) {
             return null;
         }
-        if (target.getPromotion() != null && target.getPromotion().isValidOn(utils.getToday())) {
+        if (target.getPromotion() != null && target.getPromotion().isValidOn(Utils.getToday())) {
             int bundle = target.getPromotion().getBundle();
             int promotionAvailable = (target.getPromotionAmount() / bundle) * bundle;
             if (purchased.getAmount() > promotionAvailable) {

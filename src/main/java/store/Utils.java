@@ -32,7 +32,7 @@ public class Utils {
         }
     }
 
-    public LocalDateTime getToday() {
+    public static LocalDateTime getToday() {
         return DateTimes.now();
     }
 }

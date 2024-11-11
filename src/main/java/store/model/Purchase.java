@@ -1,5 +1,6 @@
 package store.model;
 
+import store.Utils;
 import store.model.dto.PurchaseDto;
 import store.model.dto.ReceiptDto;
 import store.model.dto.ReceiptDto.PurchaseType;
@@ -31,9 +32,13 @@ public class Purchase {
         return amount;
     }
 
+    public Product getProduct() {
+        return product;
+    }
+
     public ReceiptDto commit() {
         Promotion promotion = product.getPromotion();
-        if (promotion != null) {
+        if (promotion != null && promotion.isValidOn(Utils.getToday())) {
             return subOnPromotion(promotion);
         }
         return subOnMembership();

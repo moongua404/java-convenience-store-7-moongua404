@@ -22,4 +22,16 @@ public class InputView {
         }
         throw ExceptionConstants.INVALID_INPUT.getException();
     }
+
+    public boolean readYorN(MessageConstants message) throws Exception {
+        System.out.println(String.format(message.getMessage()));
+        String line = Console.readLine();
+        if (Objects.equals(line, "Y")) {
+            return true;
+        }
+        if (Objects.equals(line, "N")) {
+            return false;
+        }
+        throw ExceptionConstants.INVALID_INPUT.getException();
+    }
 }
